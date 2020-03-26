@@ -7,7 +7,7 @@
 
 根据斗鱼开发文档 https://open.douyu.com/source/api/63  
 进行websocket端抓取  
-![协议.png](https://github.com/xiaxichen/DY-DanMu/blob/master/doc/%E5%8D%8F%E8%AE%AE.png)
+![协议.png](https://github.com/xiaxichen/DY-DanMu/blob/master/doc/%E5%8D%8F%E8%AE%AE.png)  
 消息长度：4 字节小端整数，表示整条消息（包括自身）长度（字节数）。  
 消息长度出现两遍，二者相同。  
 消息类型：2 字节小端整数，表示消息类型。取值如下：  
