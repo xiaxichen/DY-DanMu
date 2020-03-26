@@ -1,6 +1,6 @@
 # DY-DanMu
-# 斗鱼弹幕抓取分析程序
-## 具体架构
+
+## 斗鱼弹幕抓取分析程序
 ![架构.png](https://github.com/xiaxichen/DY-DanMu/blob/master/doc/%E5%BE%AE%E6%9C%8D%E5%8A%A1%E6%9E%B6%E6%9E%84%E5%9B%BE.png)
 
 ## 具体思路
