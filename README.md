@@ -19,12 +19,12 @@ https://datatracker.ietf.org/doc/rfc6455/
 中文版讲解  
 https://segmentfault.com/a/1190000005680323  
 
-###具体服务为三个 
-    1. spider端:
-        连接websocket后实时获取弹幕信息通过gorutine连接rpc服务器进行存储
-    2. RPC-server端:
-        连接数据库进行数据存储 查询工作
-    3. Web端:
-        实现api接口进行参数解析 连接rpc进行查询
+##具体服务为三个   
+    1. spider端:  
+        连接websocket后实时获取弹幕信息通过gorutine连接rpc服务器进行存储  
+    2. RPC-server端:  
+        连接数据库进行数据存储 查询工作  
+    3. Web端:  
+        实现api接口进行参数解析 连接rpc进行查询  
 
 ![协议.png](https://github.com/xiaxichen/DY-DanMu/blob/master/doc/%E6%B5%81%E7%A8%8B%E5%9B%BE.png)
