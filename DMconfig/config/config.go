@@ -1,5 +1,7 @@
 package config
 
+import "os"
+
 type DMconfig struct {
 	Rid            string
 	LoginMsg       string
@@ -19,6 +21,10 @@ type DYWebSeverConfig struct {
 	IndexBarrageCount     string
 	StatisticsBarrage     string
 	StatisticsUserBarrage string
+	SendEmail             string
+	EmailHost             string
+	EmailUser             string
+	EmailPwd              string
 }
 
 var SpiderConfig *DMconfig
@@ -34,6 +40,8 @@ func init() {
 		ElasticIndex:   "dou_yu_barrage",
 		ItemSaverRpc:   "ItemSaverService.Save",
 	}
+	emailUser := os.Getenv("EMAILUSER")
+	emailPwd := os.Getenv("EMAILPWD")
 	DYWebConfig = &DYWebSeverConfig{
 		Host:                  ":5100",
 		UserSearch:            "SelectMiddlerWare.UserQuery",
@@ -42,7 +50,10 @@ func init() {
 		IndexBarrageCount:     "SelectMiddlerWare.BarrageCount",
 		StatisticsBarrage:     "SelectMiddlerWare.StatisticsBarrageForTime",
 		StatisticsUserBarrage: "SelectMiddlerWare.StatisticsUserBarrageForTime",
+		SendEmail:             "EmialSendSever.SendToMail",
 		ElasticIndex:          "dou_yu_barrage",
+		EmailHost:             "smtp.163.com:25",
+		EmailUser:             emailUser,
+		EmailPwd:              emailPwd,
 	}
-
 }
