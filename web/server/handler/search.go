@@ -13,7 +13,7 @@ import (
 
 // SearchUserBarrage:查询用户发送弹幕
 func SearchUserBarrage(ctx *gin.Context) error {
-	var data _type.UserSearchStract
+	var data _type.UserSearchStruct
 	err := ctx.BindJSON(&data)
 	if err != nil || data.UserName == "" {
 		return ParameterError("Post Data Err")
@@ -39,7 +39,7 @@ func SearchUserBarrage(ctx *gin.Context) error {
 
 // SearchBarrageCount:获取指定时间内的弹幕总数
 func SearchBarrageCount(ctx *gin.Context) error {
-	var data _type.BarrageCountStract
+	var data _type.BarrageCountStruct
 	err := ctx.BindJSON(&data)
 	if err != nil || data.EndTime == 0 {
 		ctx.JSON(200, gin.H{"code": 400, "msg": "Post Data Err"})
@@ -64,7 +64,7 @@ func SearchBarrageCount(ctx *gin.Context) error {
 
 // SearchBarrageAll:获取全部弹幕时间倒排序 每页10条
 func SearchBarrageAll(ctx *gin.Context) error {
-	var data _type.BarrageAllStract
+	var data _type.BarrageAllStruct
 	err := ctx.BindJSON(&data)
 	if err != nil {
 		return ParameterError("Post Data Err")
@@ -90,7 +90,7 @@ func SearchBarrageAll(ctx *gin.Context) error {
 
 // SearchAllField:检索所有字段 每页10条
 func SearchAllField(ctx *gin.Context) error {
-	var data _type.QueryAllFieldStract
+	var data _type.QueryAllFieldStruct
 	err := ctx.BindJSON(&data)
 	if err != nil {
 		return ParameterError("Post Data Err")
@@ -116,7 +116,7 @@ func SearchAllField(ctx *gin.Context) error {
 
 //StatisticsBarrageForTime:根据时间统计弹幕频率
 func StatisticsBarrageForTime(ctx *gin.Context) error {
-	var data _type.StatisticsBarrageStract
+	var data _type.StatisticsBarrageStruct
 	err := ctx.BindJSON(&data)
 	if err != nil || data.From == 0 {
 		return ParameterError("Post Data Err")
@@ -138,7 +138,7 @@ func StatisticsBarrageForTime(ctx *gin.Context) error {
 
 //StatisticsUserBarrageForTime:根据时间统计用户发送弹幕
 func StatisticsUserBarrageForTime(ctx *gin.Context) error {
-	var data _type.StatisticsBarrageStract
+	var data _type.StatisticsBarrageStruct
 	err := ctx.BindJSON(&data)
 	if err != nil || data.From == 0 {
 		return ParameterError("Post Data Err")
