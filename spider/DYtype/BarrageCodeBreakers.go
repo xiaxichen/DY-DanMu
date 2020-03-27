@@ -2,9 +2,12 @@ package DYtype
 
 import (
 	"DY-DanMu/lib"
+	"DY-DanMu/web/server/_type"
 	"bytes"
+	"fmt"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 type InfoByteConfig struct {
@@ -50,6 +53,8 @@ type Response struct {
 type Response map[string]string
 
 type CodeBreakershandler struct {
+	IsLive        bool
+	EmailSendChan chan _type.EmailSendStruct
 }
 
 //Encode:编码字符串
@@ -85,12 +90,50 @@ func (c CodeBreakershandler) Decode(msgBytes []byte) []string {
 func (c CodeBreakershandler) GetChatMessages(msg_byte []byte) []Response {
 	decode_msg := c.Decode(msg_byte)
 	var messages []Response
+	var emailSendStruct _type.EmailSendStruct
 	for _, msg := range decode_msg {
 		res := c.__parseMsg(msg)
-		if res["type"] != "chatmsg" {
-			continue
+		if res["type"] == "chatmsg" {
+			messages = append(messages, res)
+		} else if res["type"] == "rss" {
+			if c.IsLive == false && res["ss"] == "1" {
+				emailSendStruct = _type.EmailSendStruct{
+					UserName: "sendemaildy@163.com",
+					To:       []string{"xiaxichen1@163.com"},
+					Body: fmt.Sprintf(`
+					<html>
+					<body>
+					<h3>
+					"夜吹直播开始了!"
+					%s
+					</h3>
+					</body>
+					</html>
+					`, time.Now().String()),
+					MailType: "html",
+				}
+				c.EmailSendChan <- emailSendStruct
+				c.IsLive = true
+			} else if c.IsLive == true && res["ss"] == "0" {
+				emailSendStruct = _type.EmailSendStruct{
+					UserName: "sendemaildy@163.com",
+					To:       []string{"xiaxichen1@163.com"},
+					Body: fmt.Sprintf(`
+					<html>
+					<body>
+					<h3>
+					"夜吹直播结束了!"
+					%s
+					</h3>
+					</body>
+					</html>
+					`, time.Now().String()),
+					MailType: "html",
+				}
+				c.EmailSendChan <- emailSendStruct
+				c.IsLive = false
+			}
 		}
-		messages = append(messages, res)
 	}
 	return messages
 }
