@@ -28,7 +28,6 @@ func serverRpc(host, index string) error {
 		Index:    index,
 		Count:    0,
 		SumCount: 0,
-		Tiker:    ticker,
 	}
 	service1 := &server.SelectMiddlerWare{
 		Client: client,
