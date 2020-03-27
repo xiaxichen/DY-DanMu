@@ -15,10 +15,11 @@ import (
 )
 
 type ItemSaverService struct {
-	Client *elastic.Client
-	Conn   *sql.DB
-	Index  string
-	Count  int
+	Client   *elastic.Client
+	Conn     *sql.DB
+	Index    string
+	Count    int
+	SumCount int
 }
 
 // Save:存储数据
@@ -26,6 +27,7 @@ func (s *ItemSaverService) Save(item item.Item, result *string) error {
 	err, err1 := Save(s.Client, s.Conn, item, s.Index)
 	if err == nil && err1 == nil {
 		s.Count++
+		s.SumCount++
 		Log.Debug("RPC Count ItemSaver: %d", s.Count)
 		*result = "ok"
 	} else {
@@ -55,8 +57,7 @@ func Save(client *elastic.Client, conn *sql.DB, item item.Item, index string) (e
 		if item.Id != "" {
 			indexService.Id(item.Id)
 		}
-		_, err = indexService.Do(
-			context.Background())
+		_, err = indexService.Do(context.Background())
 		prepare, err1 := conn.Prepare(fmt.Sprintf("insert ignore into %s(`cid`,`level`,`bl`,`bnn`,`brid`,`col`,`cst`,`dms`,`ifs`,`esIndex`,`hc`,`urlev`,`type`,`sahf`,`lk`,`fl`,`el`,`ct`,`txt`,`uid`,`nn`) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", config.MysqlDBName+"."+config.MysqlTableName))
 		if err != nil && err1 != nil {
 			return err, err1
