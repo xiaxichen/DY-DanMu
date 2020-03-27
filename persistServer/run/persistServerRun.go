@@ -7,6 +7,9 @@ import (
 	"DY-DanMu/persistServer/server"
 	"github.com/olivere/elastic/v7"
 	Log "github.com/sirupsen/logrus"
+	"net/smtp"
+	"strings"
+	"time"
 )
 
 func main() {
@@ -18,11 +21,14 @@ func serverRpc(host, index string) error {
 	if err != nil {
 		return err
 	}
+	ticker := time.NewTicker(time.Minute)
 	service := &server.ItemSaverService{
-		Client: client,
-		Conn:   mysql.DBConn(),
-		Index:  index,
-		Count:  0,
+		Client:   client,
+		Conn:     mysql.DBConn(),
+		Index:    index,
+		Count:    0,
+		SumCount: 0,
+		Tiker:    ticker,
 	}
 	service1 := &server.SelectMiddlerWare{
 		Client: client,
@@ -30,6 +36,18 @@ func serverRpc(host, index string) error {
 		Index:  config.DYWebConfig.ElasticIndex,
 		Count:  0,
 	}
-
-	return rpcsupport.ServeRpc(host, service, service1)
+	serviceEmail := &server.EmialSendSever{
+		Auth: smtp.PlainAuth("Send", config.DYWebConfig.EmailUser, config.DYWebConfig.EmailPwd, strings.Split(config.DYWebConfig.EmailHost, ":")[0]),
+		Host: config.DYWebConfig.EmailHost,
+	}
+	go func() {
+		for {
+			nowTime := <-ticker.C
+			count := 0
+			service.Count, count = count, service.Count
+			Log.Infof("%s 当前存储item(%d/min) 总共存储item(%d)", nowTime.String(), count, service.SumCount)
+			time.Sleep(time.Second / 2)
+		}
+	}()
+	return rpcsupport.ServeRpc(host, service, service1, serviceEmail)
 }
