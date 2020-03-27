@@ -67,7 +67,7 @@ func HandlerEsResutl(hits []*elastic.SearchHit) []ResultItem {
 }
 
 // UserQuery 查询用户弹幕
-func (e *SelectMiddlerWare) UserQuery(data _type.UserSearchStract, result *UserBarrageResult) error {
+func (e *SelectMiddlerWare) UserQuery(data _type.UserSearchStruct, result *UserBarrageResult) error {
 	boolQuery := elastic.NewBoolQuery()
 	boolQuery.Must(elastic.NewTermQuery("Payload.nn.keyword", data.UserName))
 	boolQuery.Filter(elastic.NewRangeQuery("Payload.cst").Gte(data.StartTime).Lte(data.EndTime))
@@ -93,7 +93,7 @@ func (e *SelectMiddlerWare) UserQuery(data _type.UserSearchStract, result *UserB
 }
 
 // BarrageAll 查询所有弹幕 分页返回
-func (e *SelectMiddlerWare) BarrageAll(data _type.BarrageAllStract, result *UserBarrageResult) error {
+func (e *SelectMiddlerWare) BarrageAll(data _type.BarrageAllStruct, result *UserBarrageResult) error {
 	query := elastic.NewMatchAllQuery()
 	pretty := e.Client.Search(data.EsIndex).From(data.From).Query(query).Sort("Payload.cst", false).From(data.From).Size(10).Pretty(true)
 	searchResult, err := pretty.Do(context.Background())
@@ -117,7 +117,7 @@ func (e *SelectMiddlerWare) BarrageAll(data _type.BarrageAllStract, result *User
 }
 
 //SearchFieldAll:查询所有弹幕 分页返回每页10条
-func (e *SelectMiddlerWare) SearchFieldAll(data _type.QueryAllFieldStract, result *UserBarrageResult) error {
+func (e *SelectMiddlerWare) SearchFieldAll(data _type.QueryAllFieldStruct, result *UserBarrageResult) error {
 	allQuery := elastic.NewMatchAllQuery()
 	allQuery.QueryName(data.Query)
 	pretty := e.Client.Search(data.EsIndex).Query(allQuery).Sort("Payload.cst", false).From(data.From).Size(10).Pretty(true)
@@ -142,7 +142,7 @@ func (e *SelectMiddlerWare) SearchFieldAll(data _type.QueryAllFieldStract, resul
 }
 
 // BarrageCount:查询一段时间内的弹幕总数
-func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStract, result *_type2.BarrageCount) error {
+func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStruct, result *_type2.BarrageCount) error {
 	prepare, err := e.Conn.Prepare(fmt.Sprintf("select count(*) from %s where ?>cst<?", config.MysqlDBName+"."+config.MysqlTableName))
 	if err != nil {
 		return err
@@ -163,7 +163,7 @@ func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStract, result *
 }
 
 //StatisticsBarrageForTime:查询弹幕频率
-func (e *SelectMiddlerWare) StatisticsBarrageForTime(data _type.StatisticsBarrageStract, result *[]_type2.BarrageStatisticsCountResult) error {
+func (e *SelectMiddlerWare) StatisticsBarrageForTime(data _type.StatisticsBarrageStruct, result *[]_type2.BarrageStatisticsCountResult) error {
 	prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a,txt from %s WHERE ?>cst<? GROUP BY txt ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
 	if err != nil {
 		Log.Error(err)
@@ -186,7 +186,7 @@ func (e *SelectMiddlerWare) StatisticsBarrageForTime(data _type.StatisticsBarrag
 }
 
 //StatisticsUserBarrageForTime:查询用户弹幕频率
-func (e *SelectMiddlerWare) StatisticsUserBarrageForTime(data _type.StatisticsBarrageStract, result *[]_type2.BarrageStatisticsUserCountResult) error {
+func (e *SelectMiddlerWare) StatisticsUserBarrageForTime(data _type.StatisticsBarrageStruct, result *[]_type2.BarrageStatisticsUserCountResult) error {
 	prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a, nn,uid from %s WHERE ?>cst<? GROUP BY nn,uid ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
 	if err != nil {
 		Log.Error(err)
