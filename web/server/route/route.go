@@ -2,12 +2,14 @@ package route
 
 import (
 	"DY-DanMu/web/server/handler"
+	"DY-DanMu/web/util"
 	"github.com/gin-gonic/gin"
 )
 
 func Router() *gin.Engine {
 	//gin framewoke。包括Logger,Recovery
 	router := gin.Default()
+	router.Use(util.Cors())
 	router.POST("/search/user", handler.Wrapper(handler.SearchUserBarrage))
 	router.POST("/search/all", handler.Wrapper(handler.SearchBarrageAll))
 	router.POST("/search", handler.Wrapper(handler.SearchAllField))
