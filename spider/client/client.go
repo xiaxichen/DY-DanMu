@@ -22,11 +22,11 @@ type DyBarrageWebSocketClientInterface interface {
 	Init()
 	getOnMsg()
 	runForever()
-	__login()
-	__join_group()
-	__start_heartbeat()
-	__logout()
-	__on_error(err error)
+	login()
+	joinGroup()
+	startHeartbeat()
+	logout()
+	onError(err error)
 }
 
 //DyBarrageWebSocketClient:斗鱼弹幕服务器连接端
@@ -57,7 +57,7 @@ func (d *DyBarrageWebSocketClient) Start() {
 //Stop:停止
 func (d *DyBarrageWebSocketClient) Stop() {
 	d.ws.Close()
-	d.__logout()
+	d.logout()
 }
 
 //send:发送编码过的数据到socket服务器
@@ -82,7 +82,7 @@ func (d *DyBarrageWebSocketClient) getOnMsg() {
 		status, message, err := d.ws.ReadMessage()
 		if err != nil {
 			log.Println("read:", err)
-			d.__on_error(err)
+			d.onError(err)
 			continue
 		}
 		switch {
@@ -105,23 +105,23 @@ func (d *DyBarrageWebSocketClient) getOnMsg() {
 
 //runForever:程序入口
 func (d *DyBarrageWebSocketClient) runForever() {
-	d.__login()
-	d.__join_group()
-	go d.__start_heartbeat()
+	d.login()
+	d.joinGroup()
+	go d.startHeartbeat()
 	go d.getOnMsg()
 	<-d.sentry
 }
 
-//__login:发送登录信息
-func (d *DyBarrageWebSocketClient) __login() {
+//login:发送登录信息
+func (d *DyBarrageWebSocketClient) login() {
 	err := d.send(fmt.Sprintf(d.Config.LoginMsg, d.Config.Rid, "61609154", "61609154"))
 	if err != nil {
 		panic(err)
 	}
 }
 
-//__join_group:加入服务器端群组中
-func (d *DyBarrageWebSocketClient) __join_group() {
+//joinGroup:加入服务器端群组中
+func (d *DyBarrageWebSocketClient) joinGroup() {
 	err := d.ws.WriteMessage(websocket.TextMessage, d.MsgBreakers.Encode(
 		fmt.Sprintf(d.Config.LoginJoinGroup, d.Config.Rid),
 	))
@@ -130,8 +130,8 @@ func (d *DyBarrageWebSocketClient) __join_group() {
 	}
 }
 
-//__start_heartbeat:保持与服务端的心跳每45秒发送一次
-func (d *DyBarrageWebSocketClient) __start_heartbeat() {
+//startHeartbeat:保持与服务端的心跳每45秒发送一次
+func (d *DyBarrageWebSocketClient) startHeartbeat() {
 	heartbeat_msg := "type@=mrkl/"
 	heartbeat_msg_byte := d.MsgBreakers.Encode(heartbeat_msg)
 	for {
@@ -151,16 +151,16 @@ func (d *DyBarrageWebSocketClient) __start_heartbeat() {
 
 }
 
-//__logout:登出服务器
-func (d *DyBarrageWebSocketClient) __logout() {
+//logout:登出服务器
+func (d *DyBarrageWebSocketClient) logout() {
 	logoutMsg := "type@=logout/"
 	logoutMsgByte := d.MsgBreakers.Encode(logoutMsg)
 	d.__should_stop_heartbeat = true
 	log.Println(logoutMsgByte)
 }
 
-//__on_error:处理异常
-func (d *DyBarrageWebSocketClient) __on_error(err error) {
+//onError:处理异常
+func (d *DyBarrageWebSocketClient) onError(err error) {
 	Log.Warnf("socker error! %s", err)
 	d.ws.Close()
 	dial, _, err := websocket.DefaultDialer.Dial(d.Config.Url, nil)
@@ -168,6 +168,6 @@ func (d *DyBarrageWebSocketClient) __on_error(err error) {
 		panic(err)
 	}
 	d.ws = dial
-	d.__login()
-	d.__join_group()
+	d.login()
+	d.joinGroup()
 }
