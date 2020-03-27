@@ -9,19 +9,24 @@ import (
 	Log "github.com/sirupsen/logrus"
 )
 
+type ItemSaverStruct struct {
+	ItemCountAll int
+	ItemCountMin int
+}
+
 //ItemSaver:将Item放入gorutine进行分发上传到数据库服务器
-func ItemSaver(host string) (chan item.Item, error) {
+func (e *ItemSaverStruct) ItemSaver(host string) (chan item.Item, error) {
 	clinet, err := rpcsupport.NewClinet(host)
 	if err != nil {
 		return nil, err
 	}
 	out := make(chan item.Item)
 	go func() {
-		itemCount := 0
 		for {
 			item := <-out
-			Log.Infof("当前items #%d :%v", itemCount, item)
-			itemCount++
+			Log.Debug("当前items #%d :%v", e.ItemCountAll, item)
+			e.ItemCountAll++
+			e.ItemCountMin++
 			// Call RPC to save item
 			result := ""
 			err := clinet.Call(config.SpiderConfig.ItemSaverRpc, item, &result)
