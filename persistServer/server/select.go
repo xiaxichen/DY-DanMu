@@ -167,7 +167,7 @@ func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStruct, result *
 
 //StatisticsBarrageForTime:查询弹幕频率
 func (e *SelectMiddlerWare) StatisticsBarrageForTime(data _type.StatisticsBarrageStruct, result *[]_type2.BarrageStatisticsCountResult) error {
-	prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a,txt from %s WHERE ?>cst<? GROUP BY txt ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
+	prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a,txt from %s WHERE ?>cst<? and txt != %s GROUP BY txt ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName, "为主播点了个赞"))
 	if err != nil {
 		Log.Error(err)
 		return err
