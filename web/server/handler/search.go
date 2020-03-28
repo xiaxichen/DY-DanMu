@@ -9,6 +9,7 @@ import (
 	"DY-DanMu/web/util"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"time"
 )
 
 // SearchUserBarrage:查询用户发送弹幕
@@ -17,6 +18,9 @@ func SearchUserBarrage(ctx *gin.Context) error {
 	err := ctx.BindJSON(&data)
 	if err != nil || data.UserName == "" {
 		return ParameterError("Post Data Err")
+	}
+	if data.EndTime == 0 {
+		data.EndTime = int(time.Now().UnixNano() / 1e6)
 	}
 	result := server.UserBarrageResult{
 		ResultList: nil,
