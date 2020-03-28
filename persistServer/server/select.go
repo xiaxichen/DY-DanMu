@@ -71,7 +71,8 @@ func (e *SelectMiddlerWare) UserQuery(data _type.UserSearchStruct, result *UserB
 	boolQuery := elastic.NewBoolQuery()
 	boolQuery.Must(elastic.NewTermQuery("Payload.nn.keyword", data.UserName))
 	boolQuery.Filter(elastic.NewRangeQuery("Payload.cst").Gte(data.StartTime).Lte(data.EndTime))
-	pretty := e.Client.Search(data.EsIndex).Query(boolQuery).From(data.From).Size(10).Sort("Payload.cst", false).Pretty(true)
+	pretty := e.Client.Search(data.EsIndex).Query(boolQuery).From(data.From).Size(10).Sort("_score",
+		false).Sort("Payload.cst", false).Pretty(true)
 	searchResult, err := pretty.Do(context.Background())
 	if err != nil {
 		Log.Error(err)
@@ -118,9 +119,11 @@ func (e *SelectMiddlerWare) BarrageAll(data _type.BarrageAllStruct, result *User
 
 //SearchFieldAll:查询所有弹幕 分页返回每页10条
 func (e *SelectMiddlerWare) SearchFieldAll(data _type.QueryAllFieldStruct, result *UserBarrageResult) error {
-	allQuery := elastic.NewMatchAllQuery()
-	allQuery.QueryName(data.Query)
-	pretty := e.Client.Search(data.EsIndex).Query(allQuery).Sort("Payload.cst", false).From(data.From).Size(10).Pretty(true)
+	allQuery := elastic.NewBoolQuery() //
+	query := elastic.NewMatchQuery("Payload.txt", data.Query)
+	allQuery.Must(query)
+	pretty := e.Client.Search(data.EsIndex).Query(allQuery).Sort("_score", false).Sort("Payload.cst",
+		false).From(data.From).Size(10).Pretty(true)
 	searchResult, err := pretty.Do(context.Background())
 	if err != nil {
 		Log.Error(err)
