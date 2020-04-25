@@ -1,7 +1,7 @@
 package mysql
 
 import (
-	"DY-DanMu/dbMysql/config"
+	"DY-DanMu/dbConn/config"
 	"database/sql"
 	"fmt"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -9,21 +9,21 @@ import (
 	"os"
 )
 
-var db *sql.DB
+var _db *sql.DB
 
 func init() {
-	db, _ = sql.Open("mysql", config.MysqlUser+":"+config.MysqlPWD+"@tcp(127.0.0.1:3306)/mysql?charset=utf8mb4")
-	db.SetMaxOpenConns(1000)
-	err := db.Ping()
+	_db, _ = sql.Open("mysql", config.MysqlUser+":"+config.MysqlPWD+"@tcp(127.0.0.1:3306)/mysql?charset=utf8mb4")
+	_db.SetMaxOpenConns(1000)
+	err := _db.Ping()
 	if err != nil {
 		Log.Errorf("Failed to connect to mysql,err:%s", err)
 		os.Exit(1)
 	}
-	err = __createDB(db)
+	err = __createDB(_db)
 	if err != nil {
 		panic(err)
 	}
-	err = __createTable(db)
+	err = __createTable(_db)
 	if err != nil {
 		panic(err)
 	}
@@ -89,7 +89,7 @@ CREATE TABLE  IF NOT EXISTS dybarrage.%s  (
 
 //DBConn:返回数据库连接对象
 func DBConn() *sql.DB {
-	return db
+	return _db
 }
 func checkErr(err error) {
 	if err != nil {
