@@ -1,15 +1,17 @@
 package server
 
 import (
-	_type2 "DY-DanMu/dbMysql/_type"
-	"DY-DanMu/dbMysql/config"
+	_type2 "DY-DanMu/dbConn/_type"
+	"DY-DanMu/dbConn/config"
 	"DY-DanMu/web/server/_type"
 	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"github.com/go-redis/redis/v7"
 	"github.com/olivere/elastic/v7"
 	Log "github.com/sirupsen/logrus"
+	"time"
 )
 
 type ResultItem struct {
@@ -44,10 +46,11 @@ type UserBarrageResult struct {
 }
 
 type SelectMiddlerWare struct {
-	Client *elastic.Client
-	Conn   *sql.DB
-	Index  string
-	Count  int
+	RedisClient *redis.Client
+	Client      *elastic.Client
+	Conn        *sql.DB
+	Index       string
+	Count       int
 }
 
 // HandlerEsResutl:处理Es返回数据转换为[]ResultItem
@@ -146,7 +149,7 @@ func (e *SelectMiddlerWare) SearchFieldAll(data _type.QueryAllFieldStruct, resul
 
 // BarrageCount:查询一段时间内的弹幕总数
 func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStruct, result *_type2.BarrageCount) error {
-	prepare, err := e.Conn.Prepare(fmt.Sprintf("select count(*) from %s where ?>cst<?", config.MysqlDBName+"."+config.MysqlTableName))
+	prepare, err := e.Conn.Prepare(fmt.Sprintf("select count(cid) from %s where ?>cst<?", config.MysqlDBName+"."+config.MysqlTableName))
 	if err != nil {
 		return err
 	}
@@ -167,46 +170,82 @@ func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStruct, result *
 
 //StatisticsBarrageForTime:查询弹幕频率
 func (e *SelectMiddlerWare) StatisticsBarrageForTime(data _type.StatisticsBarrageStruct, result *[]_type2.BarrageStatisticsCountResult) error {
-	prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a,txt from %s WHERE ?>cst<? and txt != ? GROUP BY txt ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
+	bytes, err := e.RedisClient.Get("BarrageStatisticsCountResult").Bytes()
 	if err != nil {
-		Log.Error(err)
-		return err
-	}
-	query, err := prepare.Query(data.StartTime, data.EndTime, "为主播点了个赞", data.From)
-	if err != nil {
-		Log.Error(err)
-		return err
-	}
-	var barrageStatistic _type2.BarrageStatisticsCountResult
-	for query.Next() {
-		err := query.Scan(&barrageStatistic.Count, &barrageStatistic.Txt)
+		prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a,txt from %s WHERE ?>cst<? and txt != ? GROUP BY txt ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
 		if err != nil {
+			Log.Error(err)
 			return err
 		}
-		*result = append(*result, barrageStatistic)
+		query, err := prepare.Query(data.StartTime, data.EndTime, "为主播点了个赞", data.From)
+		if err != nil {
+			Log.Error(err)
+			return err
+		}
+		var barrageStatistic _type2.BarrageStatisticsCountResult
+		for query.Next() {
+			err := query.Scan(&barrageStatistic.Count, &barrageStatistic.Txt)
+			if err != nil {
+				return err
+			}
+			*result = append(*result, barrageStatistic)
+		}
+		redisData, err := json.Marshal(*result)
+		if err != nil {
+			Log.Error(err)
+		} else {
+			err = e.RedisClient.Set("BarrageStatisticsCountResult", redisData, time.Hour).Err()
+			if err != nil {
+				Log.Error(err)
+			}
+		}
+		return nil
+	} else {
+		err := json.Unmarshal(bytes, result)
+		if err != nil {
+			panic(err)
+		}
+		return nil
 	}
-	return nil
 }
 
 //StatisticsUserBarrageForTime:查询用户弹幕频率
 func (e *SelectMiddlerWare) StatisticsUserBarrageForTime(data _type.StatisticsBarrageStruct, result *[]_type2.BarrageStatisticsUserCountResult) error {
-	prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a, nn,uid from %s WHERE ?>cst<? GROUP BY nn,uid ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
+	bytes, err := e.RedisClient.Get("StatisticsUserBarrageForTime").Bytes()
 	if err != nil {
-		Log.Error(err)
-		return err
-	}
-	query, err := prepare.Query(data.StartTime, data.EndTime, data.From)
-	if err != nil {
-		Log.Error(err)
-		return err
-	}
-	var barrageStatistic _type2.BarrageStatisticsUserCountResult
-	for query.Next() {
-		err := query.Scan(&barrageStatistic.Count, &barrageStatistic.UserName, &barrageStatistic.UserId)
+		prepare, err := e.Conn.Prepare(fmt.Sprintf("select COUNT(*) As a, nn,uid from %s WHERE ?>cst<? GROUP BY nn,uid ORDER BY a Desc LIMIT ?", config.MysqlDBName+"."+config.MysqlTableName))
 		if err != nil {
+			Log.Error(err)
 			return err
 		}
-		*result = append(*result, barrageStatistic)
+		query, err := prepare.Query(data.StartTime, data.EndTime, data.From)
+		if err != nil {
+			Log.Error(err)
+			return err
+		}
+		var barrageStatistic _type2.BarrageStatisticsUserCountResult
+		for query.Next() {
+			err := query.Scan(&barrageStatistic.Count, &barrageStatistic.UserName, &barrageStatistic.UserId)
+			if err != nil {
+				return err
+			}
+			*result = append(*result, barrageStatistic)
+		}
+		redisData, err := json.Marshal(*result)
+		if err != nil {
+			Log.Error(err)
+		} else {
+			err = e.RedisClient.Set("StatisticsUserBarrageForTime", redisData, time.Hour*24).Err()
+			if err != nil {
+				Log.Error(err)
+			}
+		}
+		return nil
+	} else {
+		err := json.Unmarshal(bytes, result)
+		if err != nil {
+			panic(err)
+		}
+		return nil
 	}
-	return nil
 }

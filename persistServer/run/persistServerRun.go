@@ -2,7 +2,8 @@ package main
 
 import (
 	"DY-DanMu/DMconfig/config"
-	"DY-DanMu/dbMysql/mysql"
+	"DY-DanMu/dbConn/mysql"
+	"DY-DanMu/dbConn/redisConn"
 	"DY-DanMu/persistServer/rpcsupport"
 	"DY-DanMu/persistServer/server"
 	"github.com/olivere/elastic/v7"
@@ -30,10 +31,11 @@ func serverRpc(host, index string) error {
 		SumCount: 0,
 	}
 	service1 := &server.SelectMiddlerWare{
-		Client: client,
-		Conn:   mysql.DBConn(),
-		Index:  config.DYWebConfig.ElasticIndex,
-		Count:  0,
+		RedisClient: redisConn.DBConn(),
+		Client:      client,
+		Conn:        mysql.DBConn(),
+		Index:       config.DYWebConfig.ElasticIndex,
+		Count:       0,
 	}
 	serviceEmail := &server.EmialSendSever{
 		Auth: smtp.PlainAuth("Send", config.DYWebConfig.EmailUser, config.DYWebConfig.EmailPwd, strings.Split(config.DYWebConfig.EmailHost, ":")[0]),
