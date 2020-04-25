@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"runtime"
 	"strconv"
+	"unsafe"
 )
 
 // IntToBytes:数字转byte组
@@ -63,4 +64,11 @@ func RunFuncName() string {
 	runtime.Callers(2, pc)
 	f := runtime.FuncForPC(pc[0])
 	return f.Name()
+}
+
+// Str2bytes:字符串转bytes
+func Str2bytes(s string) []byte {
+	x := (*[2]uintptr)(unsafe.Pointer(&s))
+	h := [3]uintptr{x[0], x[1], x[1]}
+	return *(*[]byte)(unsafe.Pointer(&h))
 }
