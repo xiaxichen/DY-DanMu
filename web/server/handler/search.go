@@ -2,7 +2,7 @@ package handler
 
 import (
 	"DY-DanMu/DMconfig/config"
-	_type2 "DY-DanMu/dbMysql/_type"
+	_type2 "DY-DanMu/dbConn/_type"
 	"DY-DanMu/persistServer/server"
 	"DY-DanMu/web/client"
 	"DY-DanMu/web/server/_type"

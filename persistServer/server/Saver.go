@@ -2,7 +2,7 @@ package server
 
 import (
 	config2 "DY-DanMu/DMconfig/config"
-	"DY-DanMu/dbMysql/config"
+	"DY-DanMu/dbConn/config"
 	"DY-DanMu/lib"
 	"DY-DanMu/persistServer/item"
 	"context"
