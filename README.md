@@ -28,3 +28,5 @@ https://segmentfault.com/a/1190000005680323
         实现api接口进行参数解析 连接rpc进行查询  
 
 ![协议.png](https://github.com/xiaxichen/DY-DanMu/blob/master/doc/%E6%B5%81%E7%A8%8B%E5%9B%BE.png)
+
+由于数据量剧增 新增cache层（redis缓存）。 
