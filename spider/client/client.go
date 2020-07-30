@@ -137,7 +137,7 @@ func (d *DyBarrageWebSocketClient) startHeartbeat() {
 	for {
 		err := d.ws.WriteMessage(websocket.TextMessage, heartbeat_msg_byte)
 		for i := 0; i < 90; i++ {
-			time.Sleep(time.Microsecond * 500)
+			time.Sleep(time.Millisecond * 500)
 			if err != nil {
 				log.Fatal(err)
 			}
