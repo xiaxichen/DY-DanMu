@@ -9,17 +9,19 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/go-redis/redis/v7"
 	"github.com/olivere/elastic/v7"
 	Log "github.com/sirupsen/logrus"
 	"time"
 )
 
 type ItemSaverService struct {
-	Client   *elastic.Client
-	Conn     *sql.DB
-	Index    string
-	Count    int
-	SumCount int
+	Client    *elastic.Client
+	Conn      *sql.DB
+	RedisConn *redis.Client
+	Index     string
+	Count     int
+	SumCount  int
 }
 
 // Save:存储数据
@@ -28,6 +30,7 @@ func (s *ItemSaverService) Save(item item.Item, result *string) error {
 	if err == nil && err1 == nil {
 		s.Count++
 		s.SumCount++
+		s.RedisConn.Incr("BarrageCount")
 		Log.Debug("RPC Count ItemSaver: %d", s.Count)
 		*result = "ok"
 	} else {
