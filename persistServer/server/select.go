@@ -11,6 +11,7 @@ import (
 	"github.com/go-redis/redis/v7"
 	"github.com/olivere/elastic/v7"
 	Log "github.com/sirupsen/logrus"
+	"strconv"
 	"time"
 )
 
@@ -149,22 +150,15 @@ func (e *SelectMiddlerWare) SearchFieldAll(data _type.QueryAllFieldStruct, resul
 
 // BarrageCount:查询一段时间内的弹幕总数
 func (e *SelectMiddlerWare) BarrageCount(data _type.BarrageCountStruct, result *_type2.BarrageCount) error {
-	prepare, err := e.Conn.Prepare(fmt.Sprintf("select count(cid) from %s where ?>cst<?", config.MysqlDBName+"."+config.MysqlTableName))
+	res, err := e.RedisClient.Get("BarrageCount").Result()
 	if err != nil {
 		return err
 	}
-	defer prepare.Close()
-	query, err := prepare.Query(data.StartTime, data.EndTime)
+	count, err := strconv.Atoi(res)
 	if err != nil {
-		Log.Error(err)
-		return nil
+		return err
 	}
-	for query.Next() {
-		err := query.Scan(&result.Count)
-		if err != nil {
-			return err
-		}
-	}
+	result.Count = count
 	return nil
 }
 
