@@ -43,12 +43,12 @@ func (s *ItemSaverService) Save(item item.Item, result *string) error {
 func Save(client *elastic.Client, conn *sql.DB, item item.Item, index string) (err error, err1 error) {
 	Payload := lib.CheckIt(item.Payload)
 	if Payload != nil {
-		Scst, _ := Payload["cst"].(string)
-		if Scst == "" {
-			Payload["cst"] = time.Now().UnixNano() / 1e6
-		} else {
-			Payload["cst"] = lib.TrunType(Scst)
-		}
+		//Scst, _ := Payload["cst"].(string)
+		//if Scst == "" {
+		Payload["cst"] = time.Now().UnixNano() / 1e6
+		//} else {
+		//	Payload["cst"] = lib.TrunType(Scst)
+		//}
 		Sbl, _ := Payload["bl"].(string)
 		Payload["bl"] = lib.TrunType(Sbl)
 		Slevel, _ := Payload["level"].(string)
